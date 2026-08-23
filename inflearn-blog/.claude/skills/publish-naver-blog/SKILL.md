@@ -68,20 +68,10 @@ This picks the Chrome profile with the most naver cookies, decrypts them, and wr
 A macOS **Keychain "allow" prompt may appear** the first time — tell the user to click Allow.
 If it prints a NID_AUT/NID_SES warning, the session isn't logged in; stop and fix that first.
 
-### 4. Dry-run first (fills the editor, does NOT publish)
+### 4. Publish
 
-Publishing is public and hard to undo, so **always dry-run once** and look at the screenshot before
-the real publish, unless the user explicitly says to skip it.
-
-```bash
-cd "$SKILL_DIR/scripts"
-SHOT_DIR=/tmp node publish_naver.mjs --cookies /tmp/naver_cookies.json --content /tmp/content.json --dry-run
-```
-
-Open `/tmp/naver-filled.png` and confirm the title and body look right (correct text, no stray
-strikethrough, paragraphs separated).
-
-### 5. Publish for real
+This skill's job is to **actually publish**. The content handed to you is treated as final —
+the user reviews, edits, or deletes on Naver afterward if needed. So publish directly:
 
 ```bash
 cd "$SKILL_DIR/scripts"
@@ -89,9 +79,14 @@ SHOT_DIR=/tmp node publish_naver.mjs --cookies /tmp/naver_cookies.json --content
 ```
 
 On success it prints `{"published": true, "url": "https://blog.naver.com/<id>/<postno>", ...}`.
-Give that URL to the user. `/tmp/naver-result.png` shows the live post.
+Give that URL to the user. `/tmp/naver-result.png` shows the live post. If it prints
+`"published": false`, read the error and the screenshots in `/tmp` to see where it stopped.
 
-### 6. Clean up
+Optional dry-run: only when the user explicitly asks to preview first (or you're unsure the content
+is final), add `--dry-run` to fill the editor and screenshot (`/tmp/naver-filled.png`) without
+publishing. Don't gate normal publishing behind this — the default is to publish.
+
+### 5. Clean up
 
 Delete the decrypted cookie file — it contains the real session tokens:
 
