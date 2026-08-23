@@ -1,0 +1,29 @@
+{
+  "skill_name": "publish-naver-blog",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "방금 정리한 이 Claude Code 팁 글을 내 네이버 블로그(blog.naver.com/eddy5360)에 발행해줘.",
+      "expected_output": "Skill triggers; writes content.json, decrypts cookies, dry-runs, then publishes and returns the blog.naver.com/<id>/<postno> URL.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "네이버 블로그에 글 하나 올려줘. 제목은 '가을 회고'로.",
+      "expected_output": "Skill triggers; asks for/writes body, then publishes to Naver via the Playwright+cookie flow.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "이 초안 네이버에 포스팅 부탁. 로그인은 크롬에 되어 있어.",
+      "expected_output": "Skill triggers; reuses the existing Chrome login (no password), publishes.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "이 글을 티스토리에 발행해줘.",
+      "expected_output": "Should NOT trigger this skill (Tistory belongs to publish-tistory).",
+      "files": []
+    }
+  ]
+}

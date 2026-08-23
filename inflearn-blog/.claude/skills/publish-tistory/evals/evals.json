@@ -1,0 +1,29 @@
+{
+  "skill_name": "publish-tistory",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "이 Claude Code 팁 글을 내 티스토리 블로그에 발행해줘.",
+      "expected_output": "Skill triggers; via claude-in-chrome opens 글쓰기, fills title/body, clicks 완료 then 공개 발행, returns the entry URL.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "티스토리에 글 올려줘. 크롬에 로그인 되어 있어.",
+      "expected_output": "Skill triggers; drives the extension on the logged-in Chrome, publishes.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "tistory 포스팅 하나 해줘.",
+      "expected_output": "Skill triggers.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "prompt": "이 글을 네이버 블로그에 올려줘.",
+      "expected_output": "Should NOT trigger this skill (Naver belongs to publish-naver-blog).",
+      "files": []
+    }
+  ]
+}
