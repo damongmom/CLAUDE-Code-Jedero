@@ -1,0 +1,46 @@
+# Ralph progress — 할일+계획 관리 앱
+
+## 문서 충돌 정리 (PRD 우선)
+- 연결: 할 일 → 주간 목표(weeklyGoalId, 생성 시 필수) → 1년 목표(goalId, 생성 시 필수). 삭제로 끊기면 null(미연결).
+- PLAN의 WeeklyPlan.goals[].done 토글과 plan 단위 goalId는 쓰지 않는다. 진행률은 할 일 기준(PRD 4장).
+- weekStart는 Date 대신 "YYYY-MM-DD" 문자열(KST 월요일). 시간대 문제 회피.
+- 스택은 PLAN 그대로: Next.js 14 App Router, Mongoose, Zustand, dnd-kit, fractional-indexing, Tailwind.
+
+## 반복 기록
+
+### US-001 완료 (2026-11-11)
+- package.json(next 14.2.35, mongoose 8, zustand 5, dnd-kit, fractional-indexing 3, vitest 3, mongodb-memory-server 10), tsconfig, tailwind, eslint.
+- lib/mongodb.ts(global 캐시, 연결 시점 env 검사), models/{Goal,WeeklyPlan,Todo}.ts, lib/{week,progress,fractionalIndex}.ts.
+- 배운 점: TypeScript 7/Mongoose 9/Vitest 5 등 최신 메이저는 Next 14와 검증 안 돼서 고정하지 않음.
+- 배운 점: 클라이언트 컴포넌트라도 정적 프리렌더되므로 "오늘" 계산은 useEffect에서.
+
+### US-002 완료 (2026-11-11)
+- lib/api.ts(handle: ApiError/Validation/Cast→400, 11000→409, 그 외 500), lib/validation.ts.
+- lib/services/{goals,weekly,todos}.ts에 도메인 로직, app/api/** 라우트는 얇은 래퍼.
+- 라우트: goals, goals/[id], weekly, weekly/[id], todos, todos/[id], unlinked(GET 목록, PATCH 재연결).
+- tests/integration/api.test.ts: 라우트 핸들러를 메모리 MongoDB로 직접 호출.
+
+### US-003 완료
+- store/(goal/weekly/todo 슬라이스, devtools), lib/kanban.ts(groupColumns, resolveDrop), components/todos/*, app/todos/page.tsx(KanbanBoard는 ssr:false).
+- 배운 점: 카드 전체가 드래그 핸들이면 내부 버튼은 onPointerDown/onKeyDown 전파를 막아야 클릭이 된다.
+
+### US-004~US-008 완료
+- components/{goals,weekly}/*, app/{goals,weekly,weekly/[id],unlinked}/page.tsx, 대시보드 app/page.tsx.
+- P1(우선순위 배지·High 상단 고정, 마감 지남 표시, 목표별 진행률, 회고)은 각 화면에 포함.
+
+### 검증 방법
+- npm test: 단위 + 라우트 핸들러 통합(메모리 MongoDB).
+- npm run dev:memory: MongoDB 없이 앱 실행(메모리 DB, 종료 시 데이터 소멸).
+- 브라우저 E2E는 저장소 밖(%TEMP%\todo-goal-e2e)에서 playwright-core + 시스템 Edge로 실행: 칸반 15/15, 화면 44/44.
+- 배운 점: E2E에서 hasText 부분 일치가 설명 문구에 걸려 거짓 통과한 적이 있다. 제목처럼 정확한 요소로 비교할 것.
+- 배운 점: next build는 dev 서버와 .next를 공유하므로 verify 전에 dev 서버를 내린다.
+
+### 리뷰와 마무리
+- architect 1차 REJECTED: parseOrder가 base62만 검사 → "zzzz" 저장 시 이후 생성 500 고착. 라이브러리 검증으로 수정.
+- 함께 수정: 끊긴 참조도 미연결 목록에 포함, 늦게 온 이동 응답(실패·성공)이 최신 상태를 덮지 않음.
+- 회귀 테스트 추가 후 63/63, 2차 APPROVED.
+- deslop: MAX_WEEKLY_GOALS를 types로 통합, 내부 전용 헬퍼 export 제거, 주간 상세 로딩 상태 단순화.
+- 최종 ralph verify exit 0.
+
+## 알려진 한계 (리뷰어 정보성 지적)
+- 동시 요청 경합으로 주간 목표가 삭제된 1년 목표를 가리키면, /unlinked에서 재연결하기 전까지 그 주의 목표 편집 저장이 400.
