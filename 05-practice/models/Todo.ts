@@ -3,6 +3,7 @@ import { PRIORITIES, TODO_STATUSES } from '@/types';
 
 const TodoSchema = new Schema(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     title: { type: String, required: true, trim: true, maxlength: 200 },
     description: { type: String, default: '', maxlength: 2000 },
     status: { type: String, enum: TODO_STATUSES, default: 'todo' },
@@ -17,7 +18,7 @@ const TodoSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
-TodoSchema.index({ weeklyPlanId: 1, status: 1, order: 1 });
+TodoSchema.index({ userId: 1, weeklyPlanId: 1, status: 1, order: 1 });
 TodoSchema.index({ status: 1, order: 1 });
 TodoSchema.index({ weeklyGoalId: 1 });
 

@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { GoalModel } from '@/models/Goal';
 import { TodoModel } from '@/models/Todo';
 import * as goalItem from '@/app/api/goals/[id]/route';
@@ -11,9 +11,17 @@ import * as weeklyItem from '@/app/api/weekly/[id]/route';
 import * as weekly from '@/app/api/weekly/route';
 import type { GoalWithProgress, Todo, UnlinkedResponse, WeeklyPlan } from '@/types';
 import { useTestDB } from '../helpers/db';
-import { call } from '../helpers/http';
+import { loginAs } from '../helpers/auth';
+import { call as rawCall } from '../helpers/http';
 
 useTestDB();
+
+// 입력 주입: 모든 요청에 기본 사용자의 세션 쿠키를 붙인다. 기대값은 로그인 기능 추가 전과 같다.
+let owner: Awaited<ReturnType<typeof loginAs>>;
+beforeEach(async () => {
+  owner = await loginAs('owner');
+});
+const call: typeof rawCall = (handler, options = {}) => rawCall(handler, { cookie: owner.cookie, ...options });
 
 const WEEK = '2026-11-09';
 const MISSING_ID = '0123456789abcdef01234567';
@@ -330,7 +338,7 @@ describe('리뷰 회귀 테스트', () => {
     const goal = await seedGoal();
     const plan = await seedPlan(goal._id);
     // 동시 요청 경합으로 남을 수 있는 상태를 직접 만든다
-    const dangling = await TodoModel.create({ title: '끊긴 할 일', order: 'a0', weeklyGoalId: new Types.ObjectId() });
+    const dangling = await TodoModel.create({ userId: owner.userId, title: '끊긴 할 일', order: 'a0', weeklyGoalId: new Types.ObjectId() });
     await GoalModel.deleteOne({ _id: goal._id });
 
     const list = await call<UnlinkedResponse>(unlinked.GET);

@@ -42,5 +42,18 @@
 - deslop: MAX_WEEKLY_GOALS를 types로 통합, 내부 전용 헬퍼 export 제거, 주간 상세 로딩 상태 단순화.
 - 최종 ralph verify exit 0.
 
+## GitHub OAuth 로그인 (2026-11-12, Ralph 2차 실행, 계획 .omc/plans/github-oauth-plan.md)
+- US-101 인증 코어: lib/cookies.ts(의존성 없는 쿠키 유틸), lib/auth.ts(토큰·해시·requireUserId), UnauthorizedError는 lib/api.ts(순환 import 방지), 401 응답이 session 쿠키 삭제.
+- US-102 OAuth 라우트: /auth/github(state 쿠키 path=/auth/github, Host 헤더로 호스트 정규화), /auth/github/callback, /auth/logout, /api/auth/me. 전부 force-dynamic.
+- US-103 사용자 범위: 서비스 export 19개 모두 userId 필수 첫 인자, 라우트는 handle 안에서 requireUserId. nextOrder는 전역 유지.
+- US-104 마이그레이션: lib/migrations/addUserId.ts + tsx CLI. CLI는 autoIndex 끔(dry-run이 인덱스를 만들지 않게).
+- US-105 UI: 페이지를 app/(app)/로 git mv, 로그인 페이지, 헤더 계정 영역, middleware, 401 리다이렉트 1회 가드.
+- US-106 가이드: docs/GITHUB_OAUTH.md, .env.local.example.
+- 배운 점: next build와 next dev가 .next를 공유하면 간헐적 "Cannot find module for page" 빌드 실패 → distDir 분리(dev .next, build .next-build, NEXT_DIST_DIR로 덮어쓰기).
+- 배운 점: Next dev는 라우트 핸들러의 request.url 호스트를 자기 설정값으로 바꾼다. 실제 접속 호스트는 Host 헤더로 봐야 한다.
+- 배운 점: Mongoose autoIndex는 연결만 해도 인덱스를 만든다. 마이그레이션 dry-run에서는 꺼야 보고가 정확하다.
+- 배운 점: playwright framenavigated는 같은 문서 안 URL 갱신도 센다. 루프 판단은 실제 문서 요청 수로.
+- E2E 하네스(저장소 밖 %TEMP%\todo-goal-e2e\e2e-auth.mjs)는 메모리 DB와 3200 포트 dev 서버(.next-e2e)를 직접 띄운다.
+
 ## 알려진 한계 (리뷰어 정보성 지적)
 - 동시 요청 경합으로 주간 목표가 삭제된 1년 목표를 가리키면, /unlinked에서 재연결하기 전까지 그 주의 목표 편집 저장이 400.

@@ -1,4 +1,5 @@
 import mongoose, { Types } from 'mongoose';
+import { SESSION_COOKIE, clearCookie } from '@/lib/cookies';
 import { connectDB, DatabaseConfigError } from '@/lib/mongodb';
 
 export class ApiError extends Error {
@@ -7,6 +8,13 @@ export class ApiError extends Error {
     message: string,
   ) {
     super(message);
+  }
+}
+
+/** 세션 없음·위조·만료. lib/auth.ts와의 순환 import를 피하려고 여기에 정의한다. */
+export class UnauthorizedError extends ApiError {
+  constructor(message = '로그인이 필요합니다.') {
+    super(401, message);
   }
 }
 
@@ -69,6 +77,12 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     await connectDB();
     return await fn();
   } catch (error) {
+    if (error instanceof UnauthorizedError) {
+      // 무효 쿠키가 남아 middleware는 통과하고 API만 401이 나는 리다이렉트 루프를 막는다.
+      const response = json({ error: error.message }, 401);
+      response.headers.append('Set-Cookie', clearCookie(SESSION_COOKIE));
+      return response;
+    }
     if (error instanceof ApiError) {
       return json({ error: error.message }, error.status);
     }

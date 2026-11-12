@@ -9,8 +9,10 @@ const WeeklyGoalSchema = new Schema({
 
 const WeeklyPlanSchema = new Schema(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     // KST 월요일 YYYY-MM-DD. 문자열로 저장해 시간대 변환 문제를 없앤다.
-    weekStart: { type: String, required: true, unique: true, match: /^\d{4}-\d{2}-\d{2}$/ },
+    // 유일성은 사용자별이다: 아래 { userId, weekStart } 복합 unique 인덱스.
+    weekStart: { type: String, required: true, match: /^\d{4}-\d{2}-\d{2}$/ },
     goals: {
       type: [WeeklyGoalSchema],
       default: [],
@@ -25,6 +27,7 @@ const WeeklyPlanSchema = new Schema(
   { timestamps: true, versionKey: false },
 );
 
+WeeklyPlanSchema.index({ userId: 1, weekStart: 1 }, { unique: true });
 WeeklyPlanSchema.index({ 'goals._id': 1 });
 WeeklyPlanSchema.index({ 'goals.goalId': 1 });
 
